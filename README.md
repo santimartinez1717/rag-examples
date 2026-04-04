@@ -1,149 +1,154 @@
-# Framework de Evaluación de Sistemas RAG
+# rag-eval — Framework de Evaluación Universal para Sistemas RAG
 
-Framework para analizar, evaluar, monitorizar y calibrar diferentes arquitecturas RAG construido sobre LangSmith.
+**TFG:** "Hacia el 95% de Confianza: Monitorización y Calibración de Agentes de IA basados en RAG"
+**Universidad:** ICAI, Grado en Ingeniería Matemática e IA
+**Colaboración:** Stratesys
 
-## 🎯 Objetivo
+---
 
-Evaluar y comparar diferentes arquitecturas RAG (básicas, GraphRAG, multiagente, rerank, SQL, etc.) usando evaluadores universales y específicos por arquitectura.
+## ¿Qué es esto?
 
-## 📁 Estructura Actual
+`rag-eval` **no** construye RAGs. Es una herramienta de evaluación externa: tomas cualquier sistema RAG existente, lo envuelves en una función `fn(inputs: dict) -> dict`, y el framework lo evalúa con métricas académicas, captura trazas en LangSmith, y da un score de confianza calibrado.
 
 ```
-rag_example/
-├── rag_evaluator.py                  # ⭐ Evaluador universal (FUNCIONA)
-├── graphrag_wrapper_standalone.py    # ⭐ Wrapper GraphRAG standalone (FUNCIONA)
-├── 01_agentic_rag.ipynb              # ✅ RAG Agéntico (EVALUADO)
-├── 03_evaluacion_neo4j_rag.ipynb     # ✅ GraphRAG Neo4j (EVALUADO)
-├── neo4j_graphrag_tutorial/          # Código del tutorial GraphRAG + datos
-├── simple_rag_example.py             # RAG simple de prueba
-└── run_notebook.py                   # Script para ejecutar notebooks
+Tu RAG ──► wrapper ──► rag-eval ──► métricas + LangSmith + calibración ECE
 ```
 
-## ✅ Lo que YA funciona
+## Arquitecturas soportadas
 
-### 1. Evaluador Universal ([rag_evaluator.py](rag_evaluator.py))
+| Arquitectura | Wrapper disponible | Evaluadores específicos |
+|---|---|---|
+| Agentic RAG (LangGraph) | `notebooks/01_agentic_rag.ipynb` | loop efficiency, query reformulation |
+| GraphRAG (Neo4j + Cypher) | `rag_eval/wrappers/graphrag_neo4j.py` | cypher complexity, schema adherence, multihop |
+| GraphRAG naive (baseline) | `rag_eval/wrappers/graphrag_naive.py` | mismo esquema, sin validación |
+| Cualquier RAG | firma estándar `fn(dict) -> dict` | evaluadores universales |
 
-Evaluador agnóstico que funciona con cualquier arquitectura RAG:
+## Métricas implementadas
 
-**Métricas incluidas:**
-- ✅ `correctness` - Exactitud vs ground truth
-- ✅ `relevance` - Relevancia de la respuesta
-- ✅ `groundedness` - Fidelidad al contexto recuperado
-- ✅ `retrieval_relevance` - Calidad de los documentos recuperados
+### Universales (`rag_eval/evaluators/universal.py`)
 
-**Uso:**
+| Métrica | Tipo | Paper de referencia |
+|---|---|---|
+| `faithfulness_nli` | NLI DeBERTa, sin LLM | TRUE (NAACL 2022), RAGAS (EACL 2024) |
+| `hallucination_rate` | derivada (1 − faithfulness) | — |
+| `atomic_fact_precision` | LLM decompose + NLI verify | FActScore (EMNLP 2023) |
+| `context_precision_at_k` | ranking ponderado de chunks | RAGAS (EACL 2024) |
+| `context_recall` | cobertura del GT en contexto | RAGAS (EACL 2024) |
+| `context_relevance` | relevancia chunks vs query | TruLens RAG Triad |
+| `answer_relevance_universal` | LLM-judge G-Eval style | G-Eval (EMNLP 2023) |
+| `correctness_universal` | LLM-judge vs ground truth | G-Eval (EMNLP 2023) |
+| `negative_rejection` | anti-alucinación RGB | RGB Benchmark (AAAI 2024) |
+| `confidence_score_universal` | score compuesto calibrado | ARES (NAACL 2024) |
 
-```python
-from rag_evaluator import evaluate_rag
+### GraphRAG-específicas (`rag_eval/evaluators/graphrag.py`)
 
-# Tu función RAG (debe recibir dict y devolver dict)
-def mi_rag(inputs: dict) -> dict:
-    # ... tu lógica ...
-    return {"answer": "...", "documents": [...]}
+`cypher_generated`, `cypher_result_nonempty`, `empty_context_hallucination`, `schema_adherence`, `cypher_complexity_score`, `relationship_direction_score`, `multihop_required_detector`, `multihop_execution_score`, `failure_mode_classifier`, `answer_completeness`, `confidence_score_v2`
 
-# Dataset de evaluación
-dataset = [
-    {
-        "inputs": {"question": "¿Qué es un LLM?"},
-        "outputs": {"answer": "Un modelo de lenguaje grande..."}
-    },
-    # ... más ejemplos ...
-]
+### Calibración
 
-# Evaluar
-results = evaluate_rag(
-    mi_rag,
-    dataset,
-    dataset_name="mi-dataset",
-    project="mi-proyecto"
-)
+`compute_ece` (ECE), `temperature_scaling`, `find_optimal_temperature`, `compute_calibration_report`
+
+## Estructura del repo
+
+```
+rag-eval/
+├── rag_eval/                        # Paquete principal
+│   ├── evaluators/
+│   │   ├── universal.py             # Evaluadores universales (10 métricas + calibración)
+│   │   ├── graphrag.py              # Evaluadores GraphRAG avanzados (14 métricas)
+│   │   └── base.py                  # Evaluadores base GraphRAG (9 métricas)
+│   ├── wrappers/
+│   │   ├── graphrag_neo4j.py        # Wrapper Neo4j (validate_cypher=True)
+│   │   └── graphrag_naive.py        # Wrapper naive (baseline, sin validación)
+│   └── datasets/
+│       └── northwind.py             # 31 preguntas Northwind en 7 categorías
+│
+├── notebooks/
+│   ├── 01_agentic_rag.ipynb         # Agentic RAG (LangGraph) + evaluación
+│   └── 03_evaluacion_neo4j_rag.ipynb # GraphRAG Neo4j completo + comparación + calibración
+│
+├── docs/
+│   ├── research_universal_rag_evaluation.md   # 9 papers + 12 métricas con fórmulas
+│   ├── research_graphrag_evaluation.md        # Evaluación específica GraphRAG
+│   └── research_evaluadores_graphrag_avanzados.md
+│
+├── neo4j_graphrag_tutorial/         # Tutorial externo (referencia, datos CSV)
+├── tests/
+├── pyproject.toml
+├── requirements.txt
+└── .env.example
 ```
 
-### 2. RAG Agéntico ([01_agentic_rag.ipynb](01_agentic_rag.ipynb))
-
-**Estado:** ✅ **FUNCIONA PERFECTAMENTE**
-
-- Implementa un Agentic RAG con LangGraph
-- Incluye: retrieve → grade → rewrite → generate
-- Documentos: 3 blog posts de Lilian Weng sobre LLMs
-- **Ya integrado con el evaluador universal** (ver última celda del notebook)
-- Evaluadores custom adicionales: `answer_not_empty`, `conciseness`, `has_context`, `answer_relevance`, `faithfulness`
-
-**Cómo ejecutar:**
-1. Abre el notebook `01_agentic_rag.ipynb`
-2. Ejecuta todas las celdas
-3. La última celda ejecuta la evaluación automáticamente
-
-### 3. GraphRAG Neo4j ([03_evaluacion_neo4j_rag.ipynb](03_evaluacion_neo4j_rag.ipynb))
-
-**Estado:** ✅ **FUNCIONA PERFECTAMENTE**
-
-- Implementa GraphRAG usando Neo4j como base de datos de grafos
-- Genera queries Cypher automáticamente usando LLMs
-- Datos: Dataset Northwind (empleados, productos, órdenes)
-- **Ya integrado con el evaluador universal**
-- Wrapper standalone que evita conflictos de dependencias
-
-**Configuración (ya completada):**
-1. ✅ Neo4j Desktop instalado con APOC plugin
-2. ✅ Datos cargados (9 empleados, productos, órdenes, etc.)
-3. ✅ Credenciales configuradas en `.env`
-4. ✅ Wrapper standalone funcionando
-
-**Cómo ejecutar:**
-1. Asegúrate de que Neo4j esté corriendo (debe estar en "Active")
-2. Ejecuta las celdas del notebook
-3. La evaluación corre automáticamente con 4 métricas universales
-
-## 🚀 Próximos pasos
-
-### Arquitecturas RAG a implementar:
-
-- [ ] **MultiAgent RAG** - Coordinación de agentes especializados
-- [ ] **Rerank RAG** - Mejora del retrieval con reranking
-- [ ] **SQL RAG** - Text-to-SQL sobre bases de datos
-- [ ] **Hybrid RAG** - Combinación de vector + keyword search
-
-### Mejoras del framework:
-
-- [ ] Métricas específicas por arquitectura (graph quality, agent coordination, etc.)
-- [ ] Dashboard de monitorización en tiempo real
-- [ ] Sistema de calibración y optimización automática
-- [ ] Comparación automática entre arquitecturas
-- [ ] Exportación de reportes
-
-## 📊 Resultados de Evaluación
-
-Todos los resultados se guardan en LangSmith: https://smith.langchain.com
-
-Para ver tus evaluaciones:
-1. Ve a https://smith.langchain.com
-2. Busca el proyecto configurado en `LANGCHAIN_PROJECT`
-3. Explora datasets y experimentos
-
-## 🔧 Debugging
-
-Si algo no funciona:
+## Quickstart
 
 ```bash
-python debug_graphrag.py
+# 1. Clonar e instalar
+git clone <repo>
+cd rag-eval
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+# 2. Configurar credenciales
+cp .env.example .env
+# Editar .env con OPENAI_API_KEY, LANGCHAIN_API_KEY, NEO4J_PASSWORD
+
+# 3. Evaluar cualquier RAG
+python - << 'EOF'
+from rag_eval.evaluators.universal import evaluate_rag_universal
+from rag_eval.datasets.northwind import DATASET_NORTHWIND
+
+def mi_rag(inputs: dict) -> dict:
+    return {"answer": "...", "context": "..."}
+
+results = evaluate_rag_universal(
+    rag_fn=mi_rag,
+    dataset=DATASET_NORTHWIND,
+    dataset_name="mi-primera-eval",
+    project="01-agentic-rag",
+    preset="default",        # "nli_only" (sin LLM) | "default" | "full"
+)
+EOF
 ```
 
-Este script verifica:
-- Variables de entorno
-- Imports del wrapper
-- Conexión a Neo4j
-- Evaluadores
+## Dataset Northwind
 
-## 📝 Notas
+31 preguntas verificadas contra Neo4j en 7 categorías:
 
-- El evaluador universal ya funciona con el RAG agéntico
-- GraphRAG requiere Neo4j configurado
-- Todas las API keys están en `.env`
-- LangSmith tracing está activado para todas las ejecuciones
+| Categoría | N | Descripción |
+|---|---|---|
+| A. Lookups directos | 6 | 1-hop, baseline |
+| B. Agregaciones | 8 | COUNT, AVG, MAX |
+| C. Multi-hop 2 saltos | 5 | 2 relaciones |
+| D. Multi-hop 3+ saltos | 3 | máxima complejidad |
+| E. Sin respuesta | 4 | test anti-alucinación |
+| F. Filtros complejos | 3 | múltiples WHERE |
+| G. Jerarquía | 2 | REPORTS_TO recursivo |
 
-## 🎓 Referencias
+## Resultados experimentales (GraphRAG Principal vs Naive)
 
-- LangSmith RAG Evaluation: https://docs.langchain.com/langsmith/evaluate-rag-tutorial
-- LangGraph: https://langchain-ai.github.io/langgraph/
-- Neo4j Graph RAG: https://neo4j.com/labs/genai-ecosystem/langchain/
+| Métrica | Principal | Naive | Delta |
+|---|---|---|---|
+| Sin alucinación silenciosa | 1.000 | 0.839 | +0.161 |
+| Resultados no vacíos | 0.839 | 0.774 | +0.065 |
+| Schema adherence | 1.000 | 0.989 | +0.011 |
+| Score estructural | 0.892 | 0.819 | +0.073 |
+| Correctness | 0.581 | 0.581 | = |
+| Groundedness | 0.806 | 0.710 | +0.097 |
+
+**Hallazgo:** correctness igual en ambos (0.581) — el bottleneck es el razonamiento multi-hop, no la validación de Cypher.
+
+## Notas técnicas
+
+- `bolt://localhost:7687` para Neo4j (no `neo4j://` — causa routing error)
+- `max_concurrency=1` obligatorio (rate limit OpenAI 30k TPM)
+- NLI model: `cross-encoder/nli-deberta-v3-base` — retorna **logits**, usar softmax (no sum)
+- Los archivos raíz (`rag_evaluator.py`, `universal_rag_evaluator.py`, etc.) son shims de compatibilidad para los notebooks originales
+
+## Referencias académicas clave
+
+- **RAGAS** — Es et al., EACL 2024 · arXiv:2309.15217
+- **ARES** — Saad-Falcon et al., NAACL 2024 · arXiv:2311.09476
+- **RGB Benchmark** — Chen et al., AAAI 2024 · arXiv:2309.01431
+- **FActScore** — Min et al., EMNLP 2023 · arXiv:2305.14251
+- **G-Eval** — Liu et al., EMNLP 2023 · arXiv:2303.16634
+- **TRUE** — Honovich et al., NAACL 2022 · arXiv:2204.04991

@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "rag-eval"
+version = "0.1.0"
+description = "Framework de evaluación universal para sistemas RAG — TFG ICAI 2025/2026"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Santiago Martínez", email = ""}
+]
+keywords = ["rag", "evaluation", "llm", "langchain", "langsmith", "graphrag", "neo4j"]
+
+dependencies = [
+    # LangChain ecosystem
+    "langchain>=0.3",
+    "langchain-openai>=0.3",
+    "langchain-community>=0.3",
+    "langchain-neo4j>=0.3",
+    "langgraph>=0.3",
+    "langsmith>=0.2",
+    # LLMs
+    "openai>=1.0",
+    # NLI / embeddings (faithfulness sin LLM)
+    "sentence-transformers>=5.0",
+    "torch>=2.0",
+    # Utilities
+    "python-dotenv>=1.0",
+    "numpy>=1.24",
+    "tiktoken>=0.7",
+    "beautifulsoup4>=4.12",
+    # Notebooks
+    "ipykernel>=6.0",
+    "jupyter>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+    "mypy>=1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["rag_eval*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["F401", "F403"]   # re-exports en shims son intencionales
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

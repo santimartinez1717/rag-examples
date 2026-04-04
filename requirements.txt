@@ -1,11 +1,31 @@
-langchain>=1.0.0
-langchain-openai>=1.0.0
-langchain-community>=0.4.0
-langchain-core>=1.0.0
-langchain-text-splitters>=1.0.0
-langgraph>=1.0.0
-langsmith>=0.7.0
-beautifulsoup4>=4.12.0
-tiktoken>=0.12.0
-python-dotenv>=1.0.0
-ipykernel>=7.0.0
+# ── LangChain ecosystem ────────────────────────────
+langchain>=0.3
+langchain-openai>=0.3
+langchain-community>=0.3
+langchain-neo4j>=0.3
+langchain-core>=0.3
+langchain-text-splitters>=0.3
+langgraph>=0.3
+langsmith>=0.2
+
+# ── LLMs ───────────────────────────────────────────
+openai>=1.0
+
+# ── NLI (faithfulness_nli sin LLM — DeBERTa) ──────
+# Referencia: TRUE (NAACL 2022), RAGAS (EACL 2024)
+sentence-transformers>=5.0
+torch>=2.0
+
+# ── Data / utilities ───────────────────────────────
+numpy>=1.24
+tiktoken>=0.7
+beautifulsoup4>=4.12
+python-dotenv>=1.0
+
+# ── Notebooks ──────────────────────────────────────
+ipykernel>=6.0
+jupyter>=1.0
+
+# ── Dev / testing ──────────────────────────────────
+pytest>=7.0
+ruff>=0.4
