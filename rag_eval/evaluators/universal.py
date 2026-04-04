@@ -979,12 +979,13 @@ def confidence_score_universal(inputs: dict, outputs: dict,
     Score de confianza compuesto para cualquier RAG.
     Combina métricas NLI + LLM-judge sin duplicar llamadas LLM.
 
-    Fórmula:
+    Fórmula (pesos heurísticos — versión sin entrenamiento):
         confidence = 0.35 × faithfulness_nli
                    + 0.25 × correctness_universal
                    + 0.20 × answer_relevance_universal
                    + 0.20 × context_relevance
 
+    Para pesos aprendidos por regresión logística, usar confidence_score_learned().
     Referencia: inspirado en ARES PPI score composition (NAACL 2024).
     """
     f = faithfulness_nli(inputs, outputs)["score"]
@@ -998,6 +999,188 @@ def confidence_score_universal(inputs: dict, outputs: dict,
         f"answer_relevance={ar} | context_relevance={cr} → confidence={score}"
     )
     return {"key": "confidence_score_universal", "score": score, "comment": comment}
+
+
+# ─────────────────────────────────────────────
+# BLOQUE 12: CONFIDENCE SCORE CON PESOS APRENDIDOS (US-C1)
+# Logistic Regression sobre métricas observadas
+# Referencia: ARES (NAACL 2024) — calibración mediante regresión
+# ─────────────────────────────────────────────
+
+def train_confidence_weights(
+    metrics_matrix: List[Dict[str, float]],
+    correctness_labels: List[float],
+    feature_keys: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """
+    US-C1: Aprende pesos para el confidence score via regresión logística (numpy puro).
+
+    Dado un conjunto de ejemplos ya evaluados con sus métricas y sus labels de correctness,
+    ajusta una regresión logística para predecir P(correctness=1) a partir de las métricas.
+
+    Args:
+        metrics_matrix:    lista de dicts con métricas por ejemplo
+                           ej: [{"faithfulness_nli": 0.8, "hallucination_rate": 0.2, ...}, ...]
+        correctness_labels: lista de labels binarios (0 o 1) — si correctness ≥ 0.5 → 1
+        feature_keys:      métricas a usar como features (default: las 4 discriminativas)
+
+    Returns:
+        dict con:
+            "weights":     dict {metric_name: weight}
+            "bias":        float
+            "feature_keys": list
+            "ece_logistic": float — ECE del modelo aprendido
+            "n_train":     int
+
+    Uso:
+        model = train_confidence_weights(metrics_list, labels)
+        score = predict_confidence_score(example_metrics, model)
+    """
+    if feature_keys is None:
+        feature_keys = ["faithfulness_nli", "hallucination_rate",
+                        "correctness_continuous", "negative_rejection"]
+
+    # Construir X (n_samples × n_features) y y (n_samples,)
+    X = []
+    y = []
+    for metrics, label in zip(metrics_matrix, correctness_labels):
+        row = [metrics.get(k, 0.0) for k in feature_keys]
+        if any(v is not None and not np.isnan(v) for v in row):
+            X.append(row)
+            y.append(1.0 if label >= 0.5 else 0.0)
+
+    if len(X) < 5:
+        raise ValueError(
+            f"Se necesitan al menos 5 ejemplos para entrenar pesos. Solo hay {len(X)}."
+        )
+
+    X = np.array(X, dtype=np.float64)
+    y = np.array(y, dtype=np.float64)
+    n, d = X.shape
+
+    # Reemplazar NaN por media de la columna
+    col_means = np.nanmean(X, axis=0)
+    for j in range(d):
+        X[np.isnan(X[:, j]), j] = col_means[j]
+
+    # Normalización min-max → [0, 1]
+    X_min = X.min(axis=0)
+    X_max = X.max(axis=0)
+    X_range = np.where(X_max - X_min > 1e-8, X_max - X_min, 1.0)
+    X_norm = (X - X_min) / X_range
+
+    # Añadir bias column
+    X_aug = np.hstack([X_norm, np.ones((n, 1))])
+
+    # Regresión logística — gradient descent con L2 regularización
+    theta = np.zeros(d + 1)
+    lr = 0.1
+    lam = 0.01  # L2 regularización
+    n_iters = 500
+
+    def sigmoid(z):
+        return 1.0 / (1.0 + np.exp(-np.clip(z, -20, 20)))
+
+    for _ in range(n_iters):
+        z = X_aug @ theta
+        h = sigmoid(z)
+        grad = (X_aug.T @ (h - y)) / n + lam * np.append(theta[:-1], 0)
+        theta -= lr * grad
+
+    weights_raw = theta[:-1]
+    bias = theta[-1]
+
+    # Renormalizar pesos para que sumen 1 (interpretabilidad)
+    weight_sum = np.abs(weights_raw).sum()
+    if weight_sum > 1e-8:
+        weights_norm = weights_raw / weight_sum
+    else:
+        weights_norm = weights_raw
+
+    # ECE del modelo aprendido
+    preds = sigmoid(X_aug @ theta).tolist()
+    ece_result = compute_ece(preds, [int(yi) for yi in y])
+
+    return {
+        "weights": dict(zip(feature_keys, weights_norm.tolist())),
+        "weights_raw": dict(zip(feature_keys, weights_raw.tolist())),
+        "bias": float(bias),
+        "feature_keys": feature_keys,
+        "X_min": X_min.tolist(),
+        "X_range": X_range.tolist(),
+        "ece_logistic": ece_result["ece"],
+        "n_train": n,
+    }
+
+
+def predict_confidence_score(metrics: Dict[str, float], model: Dict[str, Any]) -> float:
+    """
+    Predice el confidence score de un ejemplo usando un modelo entrenado
+    con train_confidence_weights().
+
+    Args:
+        metrics: dict con métricas del ejemplo
+        model:   salida de train_confidence_weights()
+
+    Returns:
+        float en [0, 1] — probabilidad logística de correctness=1
+    """
+    feature_keys = model["feature_keys"]
+    X_min = np.array(model["X_min"])
+    X_range = np.array(model["X_range"])
+    weights_raw = np.array([model["weights_raw"][k] for k in feature_keys])
+    bias = model["bias"]
+
+    # Construir vector de features normalizado
+    x = np.array([metrics.get(k, 0.0) for k in feature_keys], dtype=np.float64)
+    x_norm = (x - X_min) / X_range
+    z = weights_raw @ x_norm + bias
+
+    def sigmoid(z):
+        return 1.0 / (1.0 + np.exp(-np.clip(z, -20, 20)))
+
+    return float(sigmoid(z))
+
+
+def confidence_score_learned_factory(model: Dict[str, Any]):
+    """
+    Factory que crea un evaluador LangSmith usando un modelo entrenado.
+
+    Uso:
+        model = train_confidence_weights(metrics_list, labels)
+        evaluator = confidence_score_learned_factory(model)
+        results = client.evaluate(rag_fn, evaluators=[evaluator, ...])
+
+    El evaluador computa las métricas necesarias en cada ejemplo y aplica
+    el modelo logístico para obtener el confidence score aprendido.
+    """
+    def confidence_score_learned(inputs: dict, outputs: dict, reference_outputs: dict) -> dict:
+        """Confidence score con pesos aprendidos (US-C1)."""
+        feature_keys = model["feature_keys"]
+
+        # Computar métricas necesarias para este ejemplo
+        metrics = {}
+        if "faithfulness_nli" in feature_keys:
+            metrics["faithfulness_nli"] = faithfulness_nli(inputs, outputs)["score"]
+        if "hallucination_rate" in feature_keys:
+            metrics["hallucination_rate"] = 1.0 - metrics.get("faithfulness_nli", 0.0)
+        if "correctness_continuous" in feature_keys:
+            metrics["correctness_continuous"] = correctness_continuous(
+                inputs, outputs, reference_outputs)["score"]
+        if "negative_rejection" in feature_keys:
+            metrics["negative_rejection"] = negative_rejection(
+                inputs, outputs, reference_outputs)["score"] or 0.0
+        if "answer_relevance_universal" in feature_keys:
+            metrics["answer_relevance_universal"] = answer_relevance_universal(
+                inputs, outputs)["score"]
+
+        score = predict_confidence_score(metrics, model)
+        comment = " | ".join(f"{k}={v:.3f}" for k, v in metrics.items())
+        comment += f" → confidence_learned={score:.3f}"
+
+        return {"key": "confidence_score_learned", "score": round(score, 3), "comment": comment}
+
+    return confidence_score_learned
 
 
 # ─────────────────────────────────────────────

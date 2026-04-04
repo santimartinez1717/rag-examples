@@ -1,0 +1,38 @@
+{
+  "weights": {
+    "faithfulness_nli": 0.32663086882880993,
+    "hallucination_rate": -0.4931201055152029,
+    "correctness_continuous": 0.15294060391673445,
+    "negative_rejection": -0.0273084217392526
+  },
+  "weights_raw": {
+    "faithfulness_nli": 1.554996700416374,
+    "hallucination_rate": -2.3476046208816883,
+    "correctness_continuous": 0.7281067319294132,
+    "negative_rejection": -0.13000763170480556
+  },
+  "bias": -1.0961831411588239,
+  "feature_keys": [
+    "faithfulness_nli",
+    "hallucination_rate",
+    "correctness_continuous",
+    "negative_rejection"
+  ],
+  "X_min": [
+    0.11033291974853768,
+    0.0034907577839129456,
+    0.025010755222666936,
+    0.0
+  ],
+  "X_range": [
+    0.8861763224675494,
+    0.8861763224675494,
+    0.9481050087567037,
+    1.0
+  ],
+  "ece_logistic": 0.1911,
+  "n_train": 30,
+  "ece_heuristic": 0.2756,
+  "ece_improvement": 0.08450000000000002,
+  "trained_at": "2026-04-04T16:31:26.071530Z"
+}
