@@ -120,6 +120,10 @@ class CorrectnessGradeUniversal(TypedDict):
     explanation: Annotated[str, ..., "Reasoning for the correctness score"]
     correct: Annotated[bool, ..., "True if the answer is factually consistent with ground truth"]
 
+class CorrectnessGradeContinuous(TypedDict):
+    explanation: Annotated[str, ..., "Reasoning for the score"]
+    score: Annotated[float, ..., "Correctness score: 0.0 (wrong), 0.5 (partially correct), or 1.0 (fully correct)"]
+
 class ChunkRelevanceGrade(TypedDict):
     explanation: Annotated[str, ..., "Why this chunk is or isn't relevant"]
     relevant: Annotated[bool, ..., "True if this chunk helps answer the question"]
@@ -630,6 +634,68 @@ Student answer: {answer}"""
         return {"key": "correctness_universal", "score": 0.0, "comment": f"Error: {e}"}
 
 
+def correctness_continuous(inputs: dict, outputs: dict, reference_outputs: dict) -> dict:
+    """
+    US-M2: Correctness continuo [0, 0.5, 1.0] en vez de binario.
+
+    0.0 → respuesta incorrecta (fallo factual o invención)
+    0.5 → parcialmente correcta (captura parte de la respuesta pero incompleta o inexacta)
+    1.0 → completamente correcta
+
+    Con 31 preguntas, la varianza binaria es muy alta. El score continuo
+    permite detectar diferencias más sutiles entre wrappers.
+
+    Referencia: G-Eval (Liu et al. EMNLP 2023).
+    Correlación esperada con binario > 0.8 (criterio de aceptación US-M2).
+    """
+    query = inputs.get("question", "")
+    answer = outputs.get("answer", "")
+    ground_truth = reference_outputs.get("answer", "")
+
+    if not answer or not ground_truth:
+        return {"key": "correctness_continuous", "score": 0.0,
+                "comment": "Missing answer or ground truth"}
+
+    llm = _get_llm()
+    judge = llm.with_structured_output(CorrectnessGradeContinuous, method="json_schema", strict=True)
+
+    prompt = f"""Grade the student's answer against the ground truth on a 3-point scale.
+
+Scoring rules:
+- 1.0 (Fully correct): All key facts match the ground truth. Numbers, names, relationships are accurate.
+- 0.5 (Partially correct): The answer captures the main idea but misses details, has minor inaccuracies,
+  or provides an incomplete subset of a list answer.
+- 0.0 (Incorrect): The answer contradicts the ground truth, contains major factual errors,
+  or is completely unrelated.
+
+Additional rules:
+- Extra correct information beyond what's in the ground truth is fine (1.0).
+- If asked for a number, being within 5% rounds to 1.0.
+- If the ground truth says "unknown" or "no data" and the answer fabricates data → 0.0.
+- If the answer says "I don't know" but the ground truth has an answer → 0.0.
+
+Question: {query}
+Ground truth: {ground_truth}
+Student answer: {answer}
+
+Return score as 0.0, 0.5, or 1.0 only."""
+
+    try:
+        result = judge.invoke(prompt)
+        raw_score = float(result.get("score", 0.0))
+        # Clamp al conjunto {0.0, 0.5, 1.0}
+        if raw_score >= 0.75:
+            score = 1.0
+        elif raw_score >= 0.25:
+            score = 0.5
+        else:
+            score = 0.0
+        comment = result.get("explanation", "")[:200]
+        return {"key": "correctness_continuous", "score": score, "comment": comment}
+    except Exception as e:
+        return {"key": "correctness_continuous", "score": 0.0, "comment": f"Error: {e}"}
+
+
 # ─────────────────────────────────────────────
 # BLOQUE 8: NEGATIVE REJECTION (RGB Benchmark)
 # Referencia: Chen et al., AAAI 2024 (arXiv:2309.01431)
@@ -938,12 +1004,13 @@ def confidence_score_universal(inputs: dict, outputs: dict,
 # FUNCIÓN PRINCIPAL — evaluate_rag_universal
 # ─────────────────────────────────────────────
 
-# Conjunto por defecto: métricas que no requieren muchas LLM calls
+# Conjunto por defecto: métricas core + correctness continuo (US-M2)
 DEFAULT_EVALUATORS = [
     faithfulness_nli,
     hallucination_rate,
     answer_relevance_universal,
-    correctness_universal,
+    correctness_universal,       # binario (0/1) — compatibilidad hacia atrás
+    correctness_continuous,      # continuo (0/0.5/1.0) — US-M2
     negative_rejection,
 ]
 
@@ -957,6 +1024,7 @@ FULL_EVALUATORS = [
     context_relevance,
     answer_relevance_universal,
     correctness_universal,
+    correctness_continuous,
     negative_rejection,
     confidence_score_universal,
 ]
@@ -967,6 +1035,14 @@ NLI_ONLY_EVALUATORS = [
     hallucination_rate,
 ]
 
+# Conjunto para tabla de poder discriminativo (US-M1) — las 4 métricas clave
+DISCRIMINATIVE_EVALUATORS = [
+    faithfulness_nli,
+    hallucination_rate,
+    correctness_continuous,
+    negative_rejection,
+]
+
 
 def evaluate_rag_universal(
     rag_fn: Callable[[dict], dict],
@@ -975,6 +1051,8 @@ def evaluate_rag_universal(
     project: str = "rag-universal-project",
     evaluators: Optional[List] = None,
     preset: str = "default",
+    experiment_name: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None,
     **kwargs
 ):
     """
@@ -991,13 +1069,23 @@ def evaluate_rag_universal(
         dataset:        lista de ejemplos con {"inputs": {...}, "outputs": {...}}
         dataset_name:   nombre del dataset en LangSmith
         project:        proyecto LangSmith para la evaluación
-        evaluators:     lista de evaluadores custom (sobrescribe preset)
-        preset:         "default" | "full" | "nli_only"
+        evaluators:       lista de evaluadores custom (sobrescribe preset)
+        preset:           "default" | "full" | "nli_only"
             - "default": faithfulness_nli + correctness + answer_relevance + negative_rejection
             - "full":    todas las métricas (más lento)
             - "nli_only": solo métricas NLI sin LLM (más rápido, sin costo)
-        **kwargs:       argumentos adicionales para client.evaluate()
-                        (ej. max_concurrency=1)
+        experiment_name:  nombre del experimento en LangSmith (sobrescribe prefijo auto)
+        metadata:         dict con metadata del experimento — se guarda en LangSmith.
+                          Campos estándar recomendados (US-E2):
+                            {
+                              "architecture": "GraphRAG-LangChain",
+                              "wrapper":      "graphrag_neo4j",
+                              "dataset":      "northwind-v1",
+                              "llm":          "gpt-3.5-turbo",
+                              "preset":       "default",
+                            }
+        **kwargs:         argumentos adicionales para client.evaluate()
+                          (ej. max_concurrency=1)
 
     Returns:
         ExperimentResults de LangSmith
@@ -1050,14 +1138,30 @@ def evaluate_rag_universal(
     # Parámetros por defecto conservadores (rate limit OpenAI)
     max_concurrency: int = kwargs.pop("max_concurrency", 1)
 
+    # US-E2: metadata estructurada para LangSmith
+    import datetime
+    base_metadata = {
+        "preset": preset,
+        "n_examples": len(dataset),
+        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+    }
+    if metadata:
+        base_metadata.update(metadata)
+
+    # Nombre del experimento
+    exp_prefix = experiment_name or dataset_name.replace(" ", "-")
+
     print(f"🚀 Iniciando evaluación con max_concurrency={max_concurrency}...")
+    if base_metadata:
+        print(f"   Metadata: {base_metadata}")
 
     results = client.evaluate(
         rag_fn,
         data=dataset_name,
         evaluators=evaluators,
-        experiment_prefix=dataset_name.replace(" ", "-"),
+        experiment_prefix=exp_prefix,
         max_concurrency=max_concurrency,
+        metadata=base_metadata,
     )
 
     print(f"\n✅ Evaluación completa.")

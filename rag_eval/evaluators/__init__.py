@@ -16,6 +16,7 @@ from rag_eval.evaluators.universal import (
     context_relevance,
     answer_relevance_universal,
     correctness_universal,
+    correctness_continuous,
     negative_rejection,
     confidence_score_universal,
     compute_ece,
@@ -25,6 +26,7 @@ from rag_eval.evaluators.universal import (
     DEFAULT_EVALUATORS,
     FULL_EVALUATORS,
     NLI_ONLY_EVALUATORS,
+    DISCRIMINATIVE_EVALUATORS,
 )
 
 __all__ = [
@@ -37,6 +39,7 @@ __all__ = [
     "context_relevance",
     "answer_relevance_universal",
     "correctness_universal",
+    "correctness_continuous",
     "negative_rejection",
     "confidence_score_universal",
     "compute_ece",
@@ -46,4 +49,5 @@ __all__ = [
     "DEFAULT_EVALUATORS",
     "FULL_EVALUATORS",
     "NLI_ONLY_EVALUATORS",
+    "DISCRIMINATIVE_EVALUATORS",
 ]
