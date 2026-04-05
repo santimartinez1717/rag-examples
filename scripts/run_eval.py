@@ -45,6 +45,8 @@ WRAPPER_ALIASES = {
     "graphrag_naive":         ("rag_eval.wrappers.graphrag_naive",  "neo4j_graphrag_naive"),
     "graphrag_no_context":    ("rag_eval.wrappers.graphrag_no_context",    "graphrag_no_context"),
     "graphrag_always_refuse": ("rag_eval.wrappers.graphrag_always_refuse", "graphrag_always_refuse"),
+    "graphrag_langgraph":     ("rag_eval.wrappers.graphrag_langgraph",     "graphrag_langgraph"),
+    "graphrag_neo4j_native":  ("rag_eval.wrappers.graphrag_neo4j_native",  "graphrag_neo4j_native"),
 }
 
 DATASET_ALIASES = {
