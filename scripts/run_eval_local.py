@@ -31,9 +31,13 @@ from dotenv import load_dotenv
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
+
+# Load .env BEFORE setting tracing overrides so they take effect
 load_dotenv(ROOT / ".env")
 
-os.environ.setdefault("LANGCHAIN_TRACING_V2", "false")
+# Override after load_dotenv to prevent LangSmith background thread rate-limit hangs
+os.environ["LANGCHAIN_TRACING_V2"] = "false"
+os.environ["LANGSMITH_TRACING"] = "false"
 
 
 def run_local_eval(wrapper_fn, dataset: List[Dict], verbose: bool = True) -> List[Dict]:

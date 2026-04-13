@@ -1,0 +1,40 @@
+question,answer,expected,faithfulness_nli,hallucination_rate,correctness_continuous,negative_rejection
+How many employees does the company have?,The company has 9 employees.,The company has 9 employees.,0.0,1.0,1.0,
+Which employees work in London?,"The employees who work in London are:
+1. Steven Buchanan
+2. Michael Suyama
+3. Robert King
+4. Anne Dodsworth","Four employees work in London: Steven Buchanan (Sales Manager), Michael Suyama, Anne Dodsworth, and Robert King (all Sales Representatives).",0.0,1.0,1.0,
+How many employees are based in the USA?,There are 5 employees based in the USA.,5 employees are based in the USA.,0.0,1.0,1.0,
+How many employees work in the UK?,There are 4 employees who work in the UK.,4 employees work in the UK.,0.0,1.0,1.0,
+What city does Andrew Fuller live in?,I don't have information about the city where Andrew Fuller lives.,Andrew Fuller lives in Tacoma.,0.0,1.0,0.0,
+What is Laura Callahan's job title?,I don't have information about Laura Callahan's job title.,Laura Callahan's job title is Inside Sales Coordinator.,0.0,1.0,0.0,
+How many products does the company sell?,The company sells a total of 77 products.,The company sells 77 products.,0.0,1.0,1.0,
+How many orders has the company processed?,The company has processed a total of 94 orders.,The company has processed 94 orders.,0.0,1.0,1.0,
+How many product categories are there?,There are 8 product categories in the database.,"There are 8 product categories: Beverages, Condiments, Confections, Dairy Products, Grains/Cereals, Meat/Poultry, Produce, and Seafood.",0.0,1.0,1.0,
+Which product category has the most products?,I don't have information about the column names in the Products table to determine the correct query.,Confections has the most products with 13 items.,0.0,1.0,0.0,
+What is the most expensive product?,"I don't have access to the schema of the Products table to find the correct column name for the price. Unfortunately, I cannot provide the answer to the most expensive product without this information",The most expensive product is Côte de Blaye at $263.50.,0.0,1.0,0.0,
+What is the average product price?,The average product price is approximately $28.87.,The average product price is approximately $28.87.,0.0,1.0,1.0,
+How many customers does the company have?,The company has 52 customers.,The company has 52 customers.,0.0,1.0,1.0,
+Which employee has processed the most orders?,"The employee with ID 4 has processed the most orders, with a total of 15 orders.",Margaret Peacock has processed the most orders with 15 orders.,0.0,1.0,0.5,
+Which employees report directly to Andrew Fuller?,"ERROR: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-3.5-turbo in organization org-WXeAYs7pNHT251vToIGpQE2u on tokens per min (TPM): Limit 200000, Used 190143, Requested 10137. P","The employees who report directly to Andrew Fuller are: Nancy Davolio, Janet Leverling, Margaret Peacock, Steven Buchanan, and Laura Callahan.",0.0,1.0,0.0,
+Who does Steven Buchanan report to?,I don't have information about who Steven Buchanan reports to.,"Steven Buchanan reports to Andrew Fuller, the Vice President of Sales.",0.0,1.0,0.0,
+Which employees report to Steven Buchanan?,I don't have information about which employees report to Steven Buchanan.,"Michael Suyama, Anne Dodsworth, and Robert King report to Steven Buchanan.",0.0,1.0,0.0,
+How many orders did customers from Germany place?,Customers from Germany placed a total of 14 orders.,Customers from Germany placed 14 orders.,0.0,1.0,1.0,
+Which shipper has delivered the most orders?,I apologize for the inconvenience. It seems that I am unable to retrieve the information about the shipper that has delivered the most orders due to the absence of the ShipperID column in the Orders t,United Package has delivered the most orders with 32 orders.,0.0,1.0,0.0,
+Which product categories have been sold by employees who report to Steven Buchanan?,"I apologize for the inconvenience. It seems that the table ""OrderDetails"" is still not available in the database. Unfortunately, without access to the necessary table, I am unable to provide the infor","Employees reporting to Steven Buchanan (Michael Suyama, Anne Dodsworth, Robert King) have sold products from all 8 categories.",0.0,1.0,0.0,
+How many distinct customers have ordered products from the Beverages category?,I don't have information about the distinct customers who have ordered products from the Beverages category.,26 distinct customers have ordered products from the Beverages category.,0.0,1.0,0.0,
+What is the most popular product category ordered by UK customers?,I don't have information about the most popular product category ordered by UK customers.,The most popular product category ordered by UK customers is Beverages.,0.0,1.0,0.0,
+Which employees work in Madrid?,I don't have information about that.,There are no employees working in Madrid. The database does not contain records of any employees in that city.,0.0,1.0,0.0,1.0
+Who is the CEO of the company?,I don't have information about the company table in the database.,"The database does not contain information about a CEO. The available job titles are Sales Representative, Sales Manager, Vice President Sales, Inside Sales Coordinator, and Order Administrator.",0.0,1.0,0.0,1.0
+Does the company have any products in the Electronics category?,I don't have information about whether the company has any products in the Electronics category.,"No, the company does not have an Electronics category. The available categories are Beverages, Condiments, Confections, Dairy Products, Grains/Cereals, Meat/Poultry, Produce, and Seafood.",0.0,1.0,0.0,
+Which employees were hired after 2020?,"I don't have information about the hire date in the employees table. However, I can provide you with the employees who were hired after 2020 based on the available data. Here are the employees who wer",No employees were hired after 2020. All employees in the database were hired between 1992 and 1994.,0.0,1.0,0.0,1.0
+Which employees have the title Sales Representative and work in the UK?,"The employees with the title ""Sales Representative"" and working in the UK are:
+
+1. EmployeeID: 6, LastName: Suyama, FirstName: Michael
+2. EmployeeID: 7, LastName: King, FirstName: Robert
+3. EmployeeID","Three Sales Representatives work in the UK: Michael Suyama, Anne Dodsworth, and Robert King.",1.0,0.0,1.0,
+Which products are in the Beverages category and cost more than $15?,I don't have information about that.,"The Beverages products costing more than $15 are: Chai ($18), Steeleye Stout ($18), Chartreuse verte ($18), Lakkalikööri ($18), Chang ($19), Ipoh Coffee ($46), and Côte de Blaye ($263.50). That's 7 pr",0.0,1.0,0.0,
+How many products are currently discontinued?,There are currently 8 products that are discontinued.,There are 8 discontinued products in the catalog.,0.0,1.0,1.0,
+How many levels of hierarchy are there in the employee reporting structure?,There are 2 levels of hierarchy in the employee reporting structure.,"There are 3 levels: Andrew Fuller (VP Sales) at the top, Steven Buchanan (Sales Manager) in the middle reporting to Fuller, and Michael Suyama, Anne Dodsworth, and Robert King at the bottom reporting ",1.0,0.0,0.0,
+Who are all the people in Andrew Fuller's reporting chain (direct and indirect)?,I don't have information about the reporting chain for Andrew Fuller in the database.,"Andrew Fuller's complete reporting chain includes: Direct reports: Nancy Davolio, Janet Leverling, Margaret Peacock, Steven Buchanan, Laura Callahan. Indirect reports (via Buchanan): Michael Suyama, A",0.0,1.0,0.0,
