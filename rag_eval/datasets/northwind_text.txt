@@ -1,0 +1,231 @@
+Nancy Davolio (ID: 1) is a Sales Representative based in Seattle, USA.
+
+Andrew Fuller (ID: 2) is a Vice President Sales based in Tacoma, USA.
+
+Janet Leverling (ID: 3) is a Sales Representative based in Kirkland, USA.
+
+Margaret Peacock (ID: 4) is a Sales Representative based in Redmond, USA.
+
+Steven Buchanan (ID: 5) is a Sales Manager based in London, UK.
+
+Michael Suyama (ID: 6) is a Sales Representative based in London, UK.
+
+Robert King (ID: 7) is a Sales Representative based in London, UK.
+
+Laura Callahan (ID: 8) is a Inside Sales Coordinator based in Seattle, USA.
+
+Anne Dodsworth (ID: 9) is a Sales Representative based in London, UK.
+
+Michael Suyama reports to Steven Buchanan.
+
+Anne Dodsworth reports to Steven Buchanan.
+
+Robert King reports to Steven Buchanan.
+
+Andrew Fuller reports to Andrew Fuller.
+
+Steven Buchanan reports to Andrew Fuller.
+
+Margaret Peacock reports to Andrew Fuller.
+
+Janet Leverling reports to Andrew Fuller.
+
+Nancy Davolio reports to Andrew Fuller.
+
+Laura Callahan reports to Andrew Fuller.
+
+Product 'Chai' (ID: 1) costs 18.0 per unit, has 39 units in stock, and is currently available.
+
+Product 'Chang' (ID: 2) costs 19.0 per unit, has 17 units in stock, and is currently available.
+
+Product 'Aniseed Syrup' (ID: 3) costs 10.0 per unit, has 13 units in stock, and is currently available.
+
+Product 'Chef Anton's Cajun Seasoning' (ID: 4) costs 22.0 per unit, has 53 units in stock, and is currently available.
+
+Product 'Chef Anton's Gumbo Mix' (ID: 5) costs 21.35 per unit, has 0 units in stock, and is currently discontinued.
+
+Product 'Grandma's Boysenberry Spread' (ID: 6) costs 25.0 per unit, has 120 units in stock, and is currently available.
+
+Product 'Uncle Bob's Organic Dried Pears' (ID: 7) costs 30.0 per unit, has 15 units in stock, and is currently available.
+
+Product 'Northwoods Cranberry Sauce' (ID: 8) costs 40.0 per unit, has 6 units in stock, and is currently available.
+
+Product 'Mishi Kobe Niku' (ID: 9) costs 97.0 per unit, has 29 units in stock, and is currently discontinued.
+
+Product 'Ikura' (ID: 10) costs 31.0 per unit, has 31 units in stock, and is currently available.
+
+Product 'Queso Cabrales' (ID: 11) costs 21.0 per unit, has 22 units in stock, and is currently available.
+
+Product 'Queso Manchego La Pastora' (ID: 12) costs 38.0 per unit, has 86 units in stock, and is currently available.
+
+Product 'Konbu' (ID: 13) costs 6.0 per unit, has 24 units in stock, and is currently available.
+
+Product 'Tofu' (ID: 14) costs 23.25 per unit, has 35 units in stock, and is currently available.
+
+Product 'Genen Shouyu' (ID: 15) costs 15.5 per unit, has 39 units in stock, and is currently available.
+
+Product 'Pavlova' (ID: 16) costs 17.45 per unit, has 29 units in stock, and is currently available.
+
+Product 'Alice Mutton' (ID: 17) costs 39.0 per unit, has 0 units in stock, and is currently discontinued.
+
+Product 'Carnarvon Tigers' (ID: 18) costs 62.5 per unit, has 42 units in stock, and is currently available.
+
+Product 'Teatime Chocolate Biscuits' (ID: 19) costs 9.2 per unit, has 25 units in stock, and is currently available.
+
+Product 'Sir Rodney's Marmalade' (ID: 20) costs 81.0 per unit, has 40 units in stock, and is currently available.
+
+Product 'Sir Rodney's Scones' (ID: 21) costs 10.0 per unit, has 3 units in stock, and is currently available.
+
+Product 'Gustaf's Knäckebröd' (ID: 22) costs 21.0 per unit, has 104 units in stock, and is currently available.
+
+Product 'Tunnbröd' (ID: 23) costs 9.0 per unit, has 61 units in stock, and is currently available.
+
+Product 'Guaraná Fantástica' (ID: 24) costs 4.5 per unit, has 20 units in stock, and is currently discontinued.
+
+Product 'NuNuCa Nuß-Nougat-Creme' (ID: 25) costs 14.0 per unit, has 76 units in stock, and is currently available.
+
+Product 'Gumbär Gummibärchen' (ID: 26) costs 31.23 per unit, has 15 units in stock, and is currently available.
+
+Product 'Schoggi Schokolade' (ID: 27) costs 43.9 per unit, has 49 units in stock, and is currently available.
+
+Product 'Rössle Sauerkraut' (ID: 28) costs 45.6 per unit, has 26 units in stock, and is currently discontinued.
+
+Product 'Thüringer Rostbratwurst' (ID: 29) costs 123.79 per unit, has 0 units in stock, and is currently discontinued.
+
+Product 'Nord-Ost Matjeshering' (ID: 30) costs 25.89 per unit, has 10 units in stock, and is currently available.
+
+The 'Beverages' category includes products such as: Chai, Chang, Guaraná Fantástica, Sasquatch Ale, Steeleye Stout.
+
+The 'Condiments' category includes products such as: Aniseed Syrup, Chef Anton's Cajun Seasoning, Chef Anton's Gumbo Mix, Grandma's Boysenberry Spread, Northwoods Cranberry Sauce.
+
+The 'Produce' category includes products such as: Uncle Bob's Organic Dried Pears, Tofu, Rössle Sauerkraut, Manjimup Dried Apples, Longlife Tofu.
+
+The 'Meat/Poultry' category includes products such as: Mishi Kobe Niku, Alice Mutton, Thüringer Rostbratwurst, Perth Pasties, Tourtière.
+
+The 'Seafood' category includes products such as: Ikura, Konbu, Carnarvon Tigers, Nord-Ost Matjeshering, Inlagd Sill.
+
+The 'Dairy Products' category includes products such as: Queso Cabrales, Queso Manchego La Pastora, Gorgonzola Telino, Mascarpone Fabioli, Geitost.
+
+The 'Confections' category includes products such as: Pavlova, Teatime Chocolate Biscuits, Sir Rodney's Marmalade, Sir Rodney's Scones, NuNuCa Nuß-Nougat-Creme.
+
+The 'Grains/Cereals' category includes products such as: Gustaf's Knäckebröd, Tunnbröd, Singaporean Hokkien Fried Mee, Filo Mix, Gnocchi di nonna Alice.
+
+Supplier 'Exotic Liquids' is from UK.
+
+Supplier 'New Orleans Cajun Delights' is from USA.
+
+Supplier 'Grandma Kelly's Homestead' is from USA.
+
+Supplier 'Tokyo Traders' is from Japan.
+
+Supplier 'Cooperativa de Quesos 'Las Cabras'' is from Spain.
+
+Supplier 'Mayumi's' is from Japan.
+
+Supplier 'Pavlova Ltd.' is from Australia.
+
+Supplier 'Specialty Biscuits Ltd.' is from UK.
+
+Supplier 'PB Knäckebröd AB' is from Sweden.
+
+Supplier 'Refrescos Americanas LTDA' is from Brazil.
+
+Supplier 'Heli Süßwaren GmbH & Co. KG' is from Germany.
+
+Supplier 'Plutzer Lebensmittelgroßmärkte AG' is from Germany.
+
+Supplier 'Nord-Ost-Fisch Handelsgesellschaft mbH' is from Germany.
+
+Supplier 'Formaggi Fortini s.r.l.' is from Italy.
+
+Supplier 'Norske Meierier' is from Norway.
+
+Employees based in London: Steven Buchanan (Sales Manager), Michael Suyama (Sales Representative), Anne Dodsworth (Sales Representative), Robert King (Sales Representative).
+
+The company has processed a total of 250 orders.
+
+The company has 52 customers.
+
+The company sells 77 different products.
+
+The company works with 29 suppliers.
+
+Margaret Peacock has processed 46 orders.
+
+Nancy Davolio has processed 33 orders.
+
+Laura Callahan has processed 29 orders.
+
+Andrew Fuller has processed 24 orders.
+
+Michael Suyama has processed 21 orders.
+
+Janet Leverling has processed 21 orders.
+
+Robert King has processed 17 orders.
+
+Anne Dodsworth has processed 14 orders.
+
+Steven Buchanan has processed 8 orders.
+
+Customer 'Rattlesnake Canyon Grocery' has placed 13 orders.
+
+Customer 'Hungry Owl All-Night Grocers' has placed 13 orders.
+
+Customer 'Tortuga Restaurante' has placed 12 orders.
+
+Customer 'QUICK-Stop' has placed 11 orders.
+
+Customer 'LILA-Supermercado' has placed 9 orders.
+
+Customer 'Romero y tomillo' has placed 8 orders.
+
+Customer 'Königlich Essen' has placed 8 orders.
+
+Customer 'Frankenversand' has placed 8 orders.
+
+Customer 'Wartian Herkku' has placed 7 orders.
+
+Customer 'Berglunds snabbköp' has placed 7 orders.
+
+Product 'Mozzarella di Giovanni' has been ordered 9 times.
+
+Product 'Raclette Courdavault' has been ordered 8 times.
+
+Product 'Tarte au sucre' has been ordered 8 times.
+
+Product 'Alice Mutton' has been ordered 7 times.
+
+Product 'Ipoh Coffee' has been ordered 6 times.
+
+Product 'Scottish Longbreads' has been ordered 6 times.
+
+Product 'Pavlova' has been ordered 6 times.
+
+Product 'Nord-Ost Matjeshering' has been ordered 6 times.
+
+Product 'Guaraná Fantástica' has been ordered 5 times.
+
+Product 'Inlagd Sill' has been ordered 5 times.
+
+'Côte de Blaye' is one of the most expensive products at 263.5 per unit.
+
+'Thüringer Rostbratwurst' is one of the most expensive products at 123.79 per unit.
+
+'Mishi Kobe Niku' is one of the most expensive products at 97.0 per unit.
+
+'Sir Rodney's Marmalade' is one of the most expensive products at 81.0 per unit.
+
+'Carnarvon Tigers' is one of the most expensive products at 62.5 per unit.
+
+Product 'Rhönbräu Klosterbier' has the highest stock with 125 units.
+
+Product 'Boston Crab Meat' has the highest stock with 123 units.
+
+Product 'Grandma's Boysenberry Spread' has the highest stock with 120 units.
+
+Product 'Pâté chinois' has the highest stock with 115 units.
+
+Product 'Sirop d'érable' has the highest stock with 113 units.
+
+The company uses these shipping companies: Federal Shipping, Speedy Express, United Package.

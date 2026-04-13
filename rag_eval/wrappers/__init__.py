@@ -20,9 +20,12 @@ __all__ = [
     "graphrag_no_context",                 # US-G1: ignores Neo4j, validates hallucination metrics
     "graphrag_always_refuse",              # US-G2: always refuses, validates negative_rejection
     "graphrag_langgraph",                  # US-G4: LangGraph agent with explicit nodes + retry
-    # graphrag_neo4j_native               # US-G3: neo4j-graphrag-python (requires pip install neo4j-graphrag)
+    # graphrag_neo4j_native               # US-G3: neo4j-graphrag-python (requires neo4j-graphrag)
+    # graphrag_llamaindex                 # US-G5: LlamaIndex + Neo4j (requires llama-index)
+    # graphrag_lightrag                   # US-G6: LightRAG text-graph (requires lightrag-hku)
 ]
 
-# Note: graphrag_neo4j_native is NOT auto-imported to avoid ImportError if
-# neo4j-graphrag is not installed. Import explicitly when needed:
+# Optional wrappers — import explicitly when needed:
 #   from rag_eval.wrappers.graphrag_neo4j_native import graphrag_neo4j_native
+#   from rag_eval.wrappers.graphrag_llamaindex import graphrag_llamaindex
+#   from rag_eval.wrappers.graphrag_lightrag import graphrag_lightrag

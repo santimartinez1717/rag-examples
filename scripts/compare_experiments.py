@@ -40,7 +40,7 @@ def list_experiments(prefix: Optional[str] = None, limit: int = 50):
 
     kwargs = {}
     if prefix:
-        kwargs["project_name"] = prefix  # LangSmith filtra por prefijo si no es exact match
+        kwargs["name_contains"] = prefix
 
     projects = list(client.list_projects(**kwargs))[:limit]
 
@@ -68,7 +68,7 @@ def load_experiment_metrics(experiment_name: str) -> dict:
         runs = list(client.list_runs(
             project_name=experiment_name,
             run_type="chain",
-            limit=200,
+            limit=100,
         ))
 
         if not runs:

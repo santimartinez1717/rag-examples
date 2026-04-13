@@ -34,32 +34,34 @@ class GraphRAGState(TypedDict):
 
 # ── Cache del grafo compilado ─────────────────────────────────────────────────
 
-_graph_cache = None
-_neo4j_graph_cache = None
+_graph_cache: dict = {}
+_neo4j_graph_cache: dict = {}
 
 
-def _get_neo4j_graph():
+def _get_neo4j_graph(database: str = "neo4j"):
     global _neo4j_graph_cache
-    if _neo4j_graph_cache is None:
+    if database not in _neo4j_graph_cache:
         from langchain_neo4j import Neo4jGraph
-        _neo4j_graph_cache = Neo4jGraph(
+        g = Neo4jGraph(
             url=os.getenv("NEO4J_URI", "bolt://localhost:7687"),
             username=os.getenv("NEO4J_USERNAME", "neo4j"),
             password=os.getenv("NEO4J_PASSWORD", ""),
+            database=database,
             enhanced_schema=False,
         )
-        _neo4j_graph_cache.refresh_schema()
-    return _neo4j_graph_cache
+        g.refresh_schema()
+        _neo4j_graph_cache[database] = g
+    return _neo4j_graph_cache[database]
 
 
-def _build_langgraph():
+def _build_langgraph(database: str = "neo4j"):
     """Construye el grafo LangGraph para GraphRAG."""
     from langgraph.graph import StateGraph, END
     from langchain_openai import ChatOpenAI
     from langchain_core.prompts import PromptTemplate
 
     llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
-    neo4j_graph = _get_neo4j_graph()
+    neo4j_graph = _get_neo4j_graph(database)
 
     # ── Nodo 1: Generar Cypher ─────────────────────────────────────────────
     cypher_prompt = PromptTemplate(
@@ -171,14 +173,18 @@ def graphrag_langgraph(inputs: dict) -> dict:
     Wrapper LangGraph GraphRAG (US-G4).
     Agente con nodos: generate_cypher → execute_cypher → synthesize.
     Incluye retry automático si el Cypher falla.
+
+    inputs["database"] selecciona la base de datos:
+      "neo4j" (Northwind, default), "db1" (Movies), "db2" (GoT)
     """
     global _graph_cache
 
     question = inputs["question"]
+    database = inputs.get("database", "neo4j")
 
     try:
-        if _graph_cache is None:
-            _graph_cache = _build_langgraph()
+        if database not in _graph_cache:
+            _graph_cache[database] = _build_langgraph(database)
 
         initial_state: GraphRAGState = {
             "question": question,
@@ -190,7 +196,7 @@ def graphrag_langgraph(inputs: dict) -> dict:
             "attempts": 0,
         }
 
-        final_state = _graph_cache.invoke(initial_state)
+        final_state = _graph_cache[database].invoke(initial_state)
 
         answer = final_state.get("answer", "")
         cypher = final_state.get("cypher_query", "")

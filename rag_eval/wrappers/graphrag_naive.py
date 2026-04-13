@@ -17,10 +17,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-_chain_cache_naive = None
+_chain_cache_naive: dict = {}
 
 
-def create_neo4j_graphrag_naive():
+def create_neo4j_graphrag_naive(database: str = "neo4j"):
     """Crea el chain naive — versión simplificada sin validación."""
     from langchain_neo4j import Neo4jGraph
     from langchain_neo4j.chains.graph_qa.cypher import GraphCypherQAChain
@@ -31,6 +31,7 @@ def create_neo4j_graphrag_naive():
         url=os.getenv("NEO4J_URI"),
         username=os.getenv("NEO4J_USERNAME"),
         password=os.getenv("NEO4J_PASSWORD"),
+        database=database,
         enhanced_schema=False
     )
     graph.refresh_schema()
@@ -66,11 +67,13 @@ def neo4j_graphrag_naive(inputs: dict) -> dict:
     """Wrapper naive para GraphRAG — sin validación de Cypher."""
     global _chain_cache_naive
 
-    try:
-        if _chain_cache_naive is None:
-            _chain_cache_naive = create_neo4j_graphrag_naive()
+    database = inputs.get("database", "neo4j")
 
-        chain, graph = _chain_cache_naive
+    try:
+        if database not in _chain_cache_naive:
+            _chain_cache_naive[database] = create_neo4j_graphrag_naive(database)
+
+        chain, graph = _chain_cache_naive[database]
         question = inputs["question"]
         result = chain.invoke({"query": question})
 

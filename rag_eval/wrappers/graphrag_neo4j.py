@@ -1,6 +1,11 @@
 """
 Wrapper standalone para GraphRAG Neo4j - SIN importar el código del tutorial
 Evita conflictos de dependencias
+
+Soporte multi-database:
+  - inputs["database"] = "neo4j" (Northwind, default)
+  - inputs["database"] = "db1"   (Movies)
+  - inputs["database"] = "db2"   (Game of Thrones)
 """
 import os
 from dotenv import load_dotenv
@@ -8,7 +13,7 @@ from dotenv import load_dotenv
 # Cargar variables
 load_dotenv()
 
-def create_neo4j_graphrag():
+def create_neo4j_graphrag(database: str = "neo4j"):
     """Crea el chain de GraphRAG directamente sin importar el tutorial"""
     from langchain_neo4j import Neo4jGraph
     from langchain_neo4j.chains.graph_qa.cypher import GraphCypherQAChain
@@ -20,6 +25,7 @@ def create_neo4j_graphrag():
         url=os.getenv("NEO4J_URI"),
         username=os.getenv("NEO4J_USERNAME"),
         password=os.getenv("NEO4J_PASSWORD"),
+        database=database,
         enhanced_schema=False  # Deshabilitar APOC
     )
     graph.refresh_schema()
@@ -81,22 +87,24 @@ Answer:"""
     return cypher_chain
 
 
-# Cache del chain para no recrearlo en cada llamada
-_chain_cache = None
+# Cache del chain por database
+_chain_cache: dict = {}
 
 
 def neo4j_graphrag_wrapper_standalone(inputs: dict) -> dict:
-    """Wrapper standalone para GraphRAG"""
+    """Wrapper standalone para GraphRAG (validate_cypher=True)"""
     global _chain_cache
 
+    database = inputs.get("database", "neo4j")
+
     try:
-        # Crear o reutilizar el chain
-        if _chain_cache is None:
-            _chain_cache = create_neo4j_graphrag()
+        # Crear o reutilizar el chain por database
+        if database not in _chain_cache:
+            _chain_cache[database] = create_neo4j_graphrag(database)
 
         # Ejecutar
         question = inputs["question"]
-        result = _chain_cache.invoke({"query": question})
+        result = _chain_cache[database].invoke({"query": question})
 
         # Procesar resultado
         answer = None
@@ -126,7 +134,7 @@ def neo4j_graphrag_wrapper_standalone(inputs: dict) -> dict:
         # Obtener schema labels del grafo
         schema_labels = []
         try:
-            schema = _chain_cache.graph.structured_schema
+            schema = _chain_cache[database].graph.structured_schema
             schema_labels = schema.get("node_props", {}).keys() if schema else []
             schema_labels = list(schema_labels)
         except Exception:

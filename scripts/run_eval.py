@@ -23,6 +23,8 @@ Wrappers disponibles (shorthand):
 
 Datasets disponibles (shorthand):
     northwind             → rag_eval.datasets.northwind.DATASET_NORTHWIND
+    recommendations       → rag_eval.datasets.recommendations.load_recommendations_dataset()
+    metaqa                → rag_eval.datasets.metaqa.load_metaqa_dataset()
 """
 
 import argparse
@@ -47,10 +49,16 @@ WRAPPER_ALIASES = {
     "graphrag_always_refuse": ("rag_eval.wrappers.graphrag_always_refuse", "graphrag_always_refuse"),
     "graphrag_langgraph":     ("rag_eval.wrappers.graphrag_langgraph",     "graphrag_langgraph"),
     "graphrag_neo4j_native":  ("rag_eval.wrappers.graphrag_neo4j_native",  "graphrag_neo4j_native"),
+    "graphrag_llamaindex":    ("rag_eval.wrappers.graphrag_llamaindex",    "graphrag_llamaindex"),
+    "graphrag_lightrag":      ("rag_eval.wrappers.graphrag_lightrag",      "graphrag_lightrag"),
 }
 
 DATASET_ALIASES = {
     "northwind": ("rag_eval.datasets.northwind", "DATASET_NORTHWIND"),
+    "movies": ("rag_eval.datasets.movies", "DATASET_MOVIES"),
+    "got": ("rag_eval.datasets.got", "DATASET_GOT"),
+    "recommendations": ("rag_eval.datasets.recommendations", "load_recommendations_dataset"),
+    "metaqa": ("rag_eval.datasets.metaqa", "load_metaqa_dataset"),
 }
 
 
@@ -96,6 +104,8 @@ def resolve_dataset(spec: str):
 
     mod = importlib.import_module(module_path)
     dataset = getattr(mod, var_name)
+    if callable(dataset):
+        dataset = dataset()
     return dataset, var_name
 
 
@@ -113,11 +123,11 @@ def main():
     )
     parser.add_argument(
         "--dataset", default="northwind",
-        help="Dataset a usar. Alias: northwind. O formato 'rag_eval.datasets.X:VAR'. (default: northwind)",
+        help="Dataset a usar. Alias: northwind, recommendations, metaqa. O formato 'rag_eval.datasets.X:VAR'. (default: northwind)",
     )
     parser.add_argument(
-        "--preset", default="default", choices=["default", "full", "nli_only"],
-        help="Preset de evaluadores: default | full | nli_only (default: default)",
+        "--preset", default="default", choices=["default", "full", "nli_only", "discriminative"],
+        help="Preset de evaluadores: default | full | nli_only | discriminative (default: default)",
     )
     parser.add_argument(
         "--experiment-name", default=None,
@@ -153,13 +163,13 @@ def main():
     # ── Resolver wrapper y dataset ───────────────────────────────────────────
     try:
         rag_fn, wrapper_name = resolve_wrapper(args.wrapper)
-    except (ValueError, ImportError, AttributeError) as e:
+    except Exception as e:
         print(f"❌ Error al cargar wrapper '{args.wrapper}': {e}", file=sys.stderr)
         sys.exit(1)
 
     try:
         dataset, dataset_var = resolve_dataset(args.dataset)
-    except (ValueError, ImportError, AttributeError) as e:
+    except Exception as e:
         print(f"❌ Error al cargar dataset '{args.dataset}': {e}", file=sys.stderr)
         sys.exit(1)
 

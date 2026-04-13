@@ -1291,6 +1291,8 @@ def evaluate_rag_universal(
             evaluators = FULL_EVALUATORS
         elif preset == "nli_only":
             evaluators = NLI_ONLY_EVALUATORS
+        elif preset == "discriminative":
+            evaluators = DISCRIMINATIVE_EVALUATORS
         else:  # default
             evaluators = DEFAULT_EVALUATORS
 
