@@ -51,10 +51,15 @@ WRAPPER_ALIASES = {
     "graphrag_neo4j_native":  ("rag_eval.wrappers.graphrag_neo4j_native",  "graphrag_neo4j_native"),
     "graphrag_llamaindex":    ("rag_eval.wrappers.graphrag_llamaindex",    "graphrag_llamaindex"),
     "graphrag_lightrag":      ("rag_eval.wrappers.graphrag_lightrag",      "graphrag_lightrag"),
+    # SQL RAG wrappers
+    "sqlrag_langchain":       ("rag_eval.wrappers.sqlrag_langchain",       "sqlrag_langchain"),
+    "sqlrag_agent":           ("rag_eval.wrappers.sqlrag_agent",           "sqlrag_agent"),
+    "sqlrag_no_context":      ("rag_eval.wrappers.sqlrag_no_context",      "sqlrag_no_context"),
 }
 
 DATASET_ALIASES = {
-    "northwind": ("rag_eval.datasets.northwind", "DATASET_NORTHWIND"),
+    "northwind":     ("rag_eval.datasets.northwind",     "DATASET_NORTHWIND"),
+    "northwind_sql": ("rag_eval.datasets.northwind_sql", "DATASET_NORTHWIND_SQL"),
     "movies": ("rag_eval.datasets.movies", "DATASET_MOVIES"),
     "got": ("rag_eval.datasets.got", "DATASET_GOT"),
     "recommendations": ("rag_eval.datasets.recommendations", "load_recommendations_dataset"),

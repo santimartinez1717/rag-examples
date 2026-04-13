@@ -19,13 +19,16 @@ def graphrag_always_refuse(inputs: dict) -> dict:
 
     Simula un sistema "sobre-conservador" que nunca alucina pero tampoco
     aporta ningún valor — el caso extremo de safe-but-useless.
+    Multi-database: acepta inputs["database"] y lo reenvía en el output.
     """
     return {
         "answer": "I don't have information about that.",
         "context": "",
         "cypher_query": "",
         "db_results": [],
+        "schema_labels": [],
         "architecture": "graphrag_always_refuse",
+        "database": inputs.get("database", "neo4j"),
     }
 
 

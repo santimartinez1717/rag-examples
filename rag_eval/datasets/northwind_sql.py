@@ -1,20 +1,19 @@
 """
-Dataset de evaluación completo para GraphRAG sobre Northwind.
-30 preguntas cubriendo todos los tipos de fallo y complejidades.
+Dataset de evaluación para SQL RAG sobre Northwind SQLite.
+Mismo conjunto de preguntas que northwind.py pero respuestas verificadas
+contra data/northwind.db (SQLite con 94 órdenes únicas).
 
-Categorías:
-  A. Lookups directos (1-hop) — baseline, deben funcionar siempre
-  B. Agregaciones — COUNT, AVG, MAX
-  C. Multi-hop (2 saltos) — requieren atravesar 2 relaciones
-  D. Multi-hop (3+ saltos) — máxima complejidad
-  E. Preguntas sin respuesta — test de no-alucinación
-  F. Preguntas con filtros complejos — múltiples condiciones WHERE
-  G. Relaciones jerárquicas — REPORTS_TO hierarchy
+Diferencias clave vs northwind.py (Neo4j):
+  - Margaret Peacock: 15 órdenes (SQLite) vs 46 (Neo4j — conteo con duplicados)
+  - Alemania: 14 órdenes vs 122
+  - Top shipper: United Package 32 vs 74
+  - Clientes Beverages: 26 vs ~32
+  - UK popular cat: Beverages vs Confections
 
-Answers verificadas contra Neo4j.
+Se usa este dataset para evaluar sqlrag_* wrappers con run_eval.py.
 """
 
-DATASET_NORTHWIND = [
+DATASET_NORTHWIND_SQL = [
 
     # ─────────────────────────────────────────
     # A. LOOKUPS DIRECTOS (1-hop, single entity)
@@ -79,11 +78,11 @@ DATASET_NORTHWIND = [
     },
     {
         "inputs": {"question": "Which employee has processed the most orders?"},
-        "outputs": {"answer": "Margaret Peacock has processed the most orders with 46 orders."}
+        "outputs": {"answer": "Margaret Peacock has processed the most orders with 15 orders."}
     },
 
     # ─────────────────────────────────────────
-    # C. MULTI-HOP 2 SALTOS
+    # C. MULTI-HOP 2 SALTOS (JOINs)
     # ─────────────────────────────────────────
 
     {
@@ -100,11 +99,11 @@ DATASET_NORTHWIND = [
     },
     {
         "inputs": {"question": "How many orders did customers from Germany place?"},
-        "outputs": {"answer": "Customers from Germany placed 122 orders."}
+        "outputs": {"answer": "Customers from Germany placed 14 orders."}
     },
     {
         "inputs": {"question": "Which shipper has delivered the most orders?"},
-        "outputs": {"answer": "United Package has delivered the most orders with 74 orders."}
+        "outputs": {"answer": "United Package has delivered the most orders with 32 orders."}
     },
 
     # ─────────────────────────────────────────
@@ -117,11 +116,11 @@ DATASET_NORTHWIND = [
     },
     {
         "inputs": {"question": "How many distinct customers have ordered products from the Beverages category?"},
-        "outputs": {"answer": "Approximately 32 distinct customers have ordered products from the Beverages category."}
+        "outputs": {"answer": "26 distinct customers have ordered products from the Beverages category."}
     },
     {
         "inputs": {"question": "What is the most popular product category ordered by UK customers?"},
-        "outputs": {"answer": "The most popular product category ordered by UK customers is Confections."}
+        "outputs": {"answer": "The most popular product category ordered by UK customers is Beverages."}
     },
 
     # ─────────────────────────────────────────
@@ -146,7 +145,7 @@ DATASET_NORTHWIND = [
     },
 
     # ─────────────────────────────────────────
-    # F. FILTROS COMPLEJOS (múltiples condiciones)
+    # F. FILTROS COMPLEJOS (múltiples condiciones WHERE)
     # ─────────────────────────────────────────
 
     {
@@ -155,7 +154,7 @@ DATASET_NORTHWIND = [
     },
     {
         "inputs": {"question": "Which products are in the Beverages category and cost more than $15?"},
-        "outputs": {"answer": "The Beverages products costing more than $15 include Chai ($18), Chang ($19), Guaran Fantástica ($4.50 - actually under $15), Sasquatch Ale ($14 - under $15), Steeleye Stout ($18), Côte de Blaye ($263.50), Chartreuse verte ($18), Ipoh Coffee ($46), Laughing Lumberjack Lager ($14 - under $15), and Outback Lager ($15)."}
+        "outputs": {"answer": "The Beverages products costing more than $15 are: Chai ($18), Steeleye Stout ($18), Chartreuse verte ($18), Lakkalikööri ($18), Chang ($19), Ipoh Coffee ($46), and Côte de Blaye ($263.50). That's 7 products."}
     },
     {
         "inputs": {"question": "How many products are currently discontinued?"},
@@ -178,13 +177,12 @@ DATASET_NORTHWIND = [
 ]
 
 if __name__ == "__main__":
-    print(f"Dataset Northwind completo: {len(DATASET_NORTHWIND)} preguntas")
-
+    print(f"Dataset Northwind SQL: {len(DATASET_NORTHWIND_SQL)} preguntas")
     categories = {
         "A. Lookups directos": 6,
         "B. Agregaciones": 8,
-        "C. Multi-hop 2 saltos": 5,
-        "D. Multi-hop 3+ saltos": 3,
+        "C. Multi-hop (JOIN)": 5,
+        "D. Multi-hop 3+": 3,
         "E. Sin respuesta": 4,
         "F. Filtros complejos": 3,
         "G. Jerarquía": 2,
