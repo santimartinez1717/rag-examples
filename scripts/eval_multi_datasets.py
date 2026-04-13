@@ -1,8 +1,8 @@
 """
 Ejecuta evaluaciones multi-dataset con un solo comando.
 
-Por defecto intenta: northwind, recommendations, metaqa.
-Si un dataset no existe (JSON pendiente), lo salta y continúa.
+Por defecto intenta: northwind, movies, got (los 3 dominios principales).
+Si un dataset no existe, lo salta y continúa.
 
 Uso:
   python scripts/eval_multi_datasets.py \
@@ -27,7 +27,7 @@ def main():
     parser.add_argument("--wrapper", required=True, help="Alias o module:fn del wrapper")
     parser.add_argument("--preset", default="full", choices=["default", "full", "nli_only", "discriminative"])
     parser.add_argument("--project", default="graphrag-neo4j-evaluation")
-    parser.add_argument("--datasets", nargs="+", default=["northwind", "recommendations", "metaqa"])
+    parser.add_argument("--datasets", nargs="+", default=["northwind", "movies", "got"])
     parser.add_argument("--max-concurrency", type=int, default=1)
     args = parser.parse_args()
 
